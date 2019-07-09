@@ -5,9 +5,12 @@ import java.io.FileInputStream
 import com.metamx.common.lifecycle.Lifecycle
 import com.metamx.common.scala.Logging
 import com.metamx.common.scala.Predef._
-import com.metamx.tranquility.config.TranquilityConfig
+import com.metamx.tranquility.config.{DataSourceConfig, TranquilityConfig}
 import com.metamx.tranquility.pubsub.model.PropertiesBasedPubSubConfig
+import com.metamx.tranquility.pubsub.writer.WriterController
 import com.twitter.app.{App, Flag}
+
+import collection.JavaConverters._
 
 object PubSubMain extends App with Logging {
   private val ConfigResource = "tranquility-pubsub.yaml"
@@ -33,6 +36,28 @@ object PubSubMain extends App with Logging {
 
     val lifecycle = new Lifecycle
     val config = TranquilityConfig.read(configInputStream, classOf[PropertiesBasedPubSubConfig])
+    val globalConfig = config.globalConfig
 
+    val dataSourceConfigs: Map[String, DataSourceConfig[PropertiesBasedPubSubConfig]] = config.getDataSources.asScala.map { dataSource =>
+      dataSource -> config.getDataSource(dataSource)
+    }.toMap
+
+    val writerController = new WriterController(dataSourceConfigs)
+    val pubSubConsumer = new PubSubConsumer(globalConfig, dataSourceConfigs, writerController)
+
+    pubSubConsumer.start()
+
+    Runtime.getRuntime.addShutdownHook(
+      new Thread(
+        new Runnable {
+          override def run(): Unit = {
+            log.info("Shutting down")
+            pubSubConsumer.stop()
+          }
+        }
+      )
+    )
+
+    pubSubConsumer.join()
   }
 }

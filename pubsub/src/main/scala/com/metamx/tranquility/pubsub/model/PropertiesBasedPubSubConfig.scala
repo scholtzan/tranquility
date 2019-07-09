@@ -31,4 +31,10 @@ abstract class PropertiesBasedPubSubConfig extends PropertiesBasedConfig (Set("h
 
   @Config(Array("commit.periodMills"))
   def commitMillis: Int = 1000
+
+  @Config(Array("pubsub.projectId"))
+  def projectId: String = ""
+
+  @Config(Array("pubsub.subscriptionId"))
+  def subscriptionId = ""
 }

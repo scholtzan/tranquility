@@ -1,5 +1,8 @@
 package com.metamx.tranquility.pubsub.model
 
-class MessageCounters {
-
-}
+case class MessageCounters(
+   receivedCount: Long,
+   sentCount: Long,
+   droppedCount: Long,
+   unparseableCount: Long
+)
