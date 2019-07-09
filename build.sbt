@@ -138,6 +138,10 @@ val kafkaDependencies = Seq(
   "io.airlift" % "airline" % airlineVersion
 ) ++ loggingDependencies
 
+val pubSubDependencies = Seq(
+  "com.google.cloud" % "google-cloud-pubsub" % "1.81.0"
+) ++ loggingDependencies
+
 val coreTestDependencies = Seq(
   "org.scalatest" %% "scalatest" % "2.2.5" % "test",
   dependOnDruid("druid-services") % "test",
@@ -174,6 +178,10 @@ val serverTestDependencies = Seq(
 )
 
 val kafkaTestDependencies = Seq(
+  "org.easymock" % "easymock" % "3.4" % "test"
+)
+
+val pubSubTestDependencies = Seq(
   "org.easymock" % "easymock" % "3.4" % "test"
 )
 
@@ -267,6 +275,13 @@ lazy val kafka = project.in(file("kafka"))
   .settings(libraryDependencies ++= (kafkaDependencies ++ kafkaTestDependencies))
   .settings(publishArtifact in Test := false)
   .dependsOn(core % "test->test;compile->compile")
+//
+lazy val pubSub = project.in(file("pubsub"))
+  .settings(commonSettings: _*)
+  .settings(name := "tranquility-pubsub")
+  .settings(libraryDependencies ++= (pubSubDependencies ++ pubSubTestDependencies))
+  .settings(publishArtifact in Test := false)
+  .dependsOn(core % "test->test;compile->compile")
 
 lazy val distribution = project.in(file("distribution"))
   .settings(commonSettings: _*)
@@ -276,4 +291,4 @@ lazy val distribution = project.in(file("distribution"))
   .settings(executableScriptName := "tranquility")
   .settings(bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/logback.xml"""")
   .enablePlugins(JavaAppPackaging)
-  .dependsOn(kafka, server)
+  .dependsOn(kafka, pubSub, server)
