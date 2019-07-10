@@ -34,6 +34,8 @@ object PubSubMain extends App with Logging {
         }
     }
 
+    log.info("Init pubsub")
+
     val lifecycle = new Lifecycle
     val config = TranquilityConfig.read(configInputStream, classOf[PropertiesBasedPubSubConfig])
     val globalConfig = config.globalConfig

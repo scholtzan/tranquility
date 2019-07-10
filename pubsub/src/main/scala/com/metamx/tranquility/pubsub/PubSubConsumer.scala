@@ -14,7 +14,7 @@ import com.metamx.tranquility.config.DataSourceConfig
 class PubSubConsumer(config: PropertiesBasedPubSubConfig,
                      dataSourceConfig: Map[String, DataSourceConfig[PropertiesBasedPubSubConfig]],
                      writerController: WriterController) extends Logging {
-  val commitThread: Thread = new Thread(createCommitRunnable())
+//  val commitThread: Thread = new Thread(createCommitRunnable())
   val commitMillis: Int = config.commitMillis
   val commitLock = new ReentrantReadWriteLock()
   val shutdown = new AtomicBoolean()
@@ -22,7 +22,8 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
   val subscribers: Seq[Subscriber] = getSubscribers(config)
 
   def start(): Unit = {
-    commitThread.start()
+    log.info("Start pub sub consumers")
+//    commitThread.start()
     startConsumers()
   }
 
@@ -41,39 +42,37 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
   }
 
   def join(): Unit = {
-    commitThread.join()
+//    commitThread.join()
   }
 
-  def createCommitRunnable(): Runnable = {
-    new Runnable {
-      override def run(): Unit = {
-        var lastFlushTime = System.currentTimeMillis()
+//  def createCommitRunnable(): Runnable = {
+//    new Runnable {
+//      override def run(): Unit = {
+//        var lastFlushTime = System.currentTimeMillis()
+//
+//        while (!Thread.currentThread().isInterrupted) {
+//          Thread.sleep(math.max(commitMillis - (System.currentTimeMillis() - lastFlushTime), 0))
+//          commit()
+//          lastFlushTime = System.currentTimeMillis()
+//        }
+//      }
+//    }
+//  }
 
-        while (!Thread.currentThread().isInterrupted) {
-          Thread.sleep(math.max(commitMillis - (System.currentTimeMillis() - lastFlushTime), 0))
-          commit()
-          lastFlushTime = System.currentTimeMillis()
-        }
-      }
-    }
-  }
-
-  def commit(): Unit = {
-    commitLock.writeLock().lockInterruptibly()
-    val flushStartTime = System.currentTimeMillis()
-    val messageCounters = writerController.flushAll()
-
-    // todo?
-
-  }
+//  def commit(): Unit = {
+//    commitLock.writeLock().lockInterruptibly()
+//    val flushStartTime = System.currentTimeMillis()
+//    val messageCounters = writerController.flushAll()
+//
+//    // todo?
+//
+//  }
 
   private def startConsumers(): Unit = {
     subscribers.foreach(_.startAsync())
   }
 
   private def getSubscribers(config: PropertiesBasedPubSubConfig): Seq[Subscriber] = {
-    val subscriptionName = ProjectSubscriptionName.of(config.projectId, config.subscriptionId)
-
     val receiver =
       new MessageReceiver {
         override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
@@ -85,7 +84,8 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
       }
 
     dataSourceConfig.map { conf =>
-      Subscriber.newBuilder(conf._2.propertiesBasedConfig.getTopicPattern, receiver).build()
+      val subscriptionName = ProjectSubscriptionName.of(config.projectId, conf._2.propertiesBasedConfig.getTopicPattern)
+      Subscriber.newBuilder(subscriptionName, receiver).build()
     }.toSeq
   }
 }
