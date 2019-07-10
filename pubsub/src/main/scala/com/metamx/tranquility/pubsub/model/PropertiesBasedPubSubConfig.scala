@@ -4,7 +4,7 @@ import com.ibm.icu.impl.duration.Period
 import org.skife.config.Config
 import com.metamx.tranquility.config.PropertiesBasedConfig
 
-abstract class PropertiesBasedPubSubConfig extends PropertiesBasedConfig (Set("http.port", "http.threads", "http.idleTimeout")) {
+abstract class PropertiesBasedPubSubConfig extends PropertiesBasedConfig (Set("http.port", "http.threads", "http.idleTimeout", "pubsub.projectId")) {
   @Config(Array("http.port"))
   def httpPort: Int = 8085
 
@@ -20,8 +20,8 @@ abstract class PropertiesBasedPubSubConfig extends PropertiesBasedConfig (Set("h
   @Config(Array("http.threads"))
   def httpThreads: Int = 40
 
-  @Config(Array("topicPattern.pattern"))
-  def getTopicPattern: String = "(?!)"
+  @Config(Array("topicPattern"))
+  def getTopicPattern: String = ""
 
   @Config(Array("topicPattern.priority"))
   def getTopicPatternPriority: Int = 1
@@ -35,6 +35,6 @@ abstract class PropertiesBasedPubSubConfig extends PropertiesBasedConfig (Set("h
   @Config(Array("pubsub.projectId"))
   def projectId: String = ""
 
-  @Config(Array("pubsub.subscriptionId"))
-  def subscriptionId = ""
+  @Config(Array("subscriptionId"))
+  def subscriptionId: String = ""
 }

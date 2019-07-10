@@ -19,17 +19,18 @@ class WriterController(dataSourceConfigs: Map[String, DataSourceConfig[Propertie
 
   def getWriter(topic: String): TranquilityEventWriter = {
     this.synchronized {
-      if (writers.contains(topic)) {
+      if (!writers.contains(topic)) {
         dataSourceConfigList.foreach { dataSourceConfig =>
-          if (dataSourceConfig.propertiesBasedConfig.getTopicPattern.matches(topic)) {
+          if (dataSourceConfig.propertiesBasedConfig.getTopicPattern == topic) {
+            log.info(s"Creating EventWriter for topic $topic using dataSource ${dataSourceConfig.dataSource}")
             writers.put(topic, createWriter(topic, dataSourceConfig))
             return writers(topic)
           }
         }
       }
-    }
 
-    writers(topic)
+      writers(topic)
+    }
   }
 
   def createWriter(topic: String, dataSourceConfig: DataSourceConfig[PropertiesBasedPubSubConfig]): TranquilityEventWriter = {

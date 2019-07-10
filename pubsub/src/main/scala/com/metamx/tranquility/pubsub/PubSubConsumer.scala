@@ -8,7 +8,7 @@ import com.metamx.tranquility.pubsub.writer.WriterController
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.cloud.pubsub.v1.{AckReplyConsumer, MessageReceiver, Subscriber}
-import com.google.pubsub.v1.{ProjectSubscriptionName, PubsubMessage}
+import com.google.pubsub.v1.{ProjectSubscriptionName, ProjectTopicName, PubsubMessage}
 import com.metamx.tranquility.config.DataSourceConfig
 
 class PubSubConsumer(config: PropertiesBasedPubSubConfig,
@@ -73,18 +73,19 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
   }
 
   private def getSubscribers(config: PropertiesBasedPubSubConfig): Seq[Subscriber] = {
-    val receiver =
-      new MessageReceiver {
-        override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
-          commitLock.readLock().lockInterruptibly()
-          writerController.getWriter(message.getMessageId).send(message.getData.toByteArray)
-          consumer.ack()
-          commitLock.readLock().unlock()
-        }
-      }
-
     dataSourceConfig.map { conf =>
-      val subscriptionName = ProjectSubscriptionName.of(config.projectId, conf._2.propertiesBasedConfig.getTopicPattern)
+      val receiver =
+        new MessageReceiver {
+          override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
+            commitLock.readLock().lockInterruptibly()
+            log.info("Received message: " + message)
+            writerController.getWriter(conf._2.propertiesBasedConfig.getTopicPattern).send(message.getData.toByteArray)
+            consumer.ack()
+            commitLock.readLock().unlock()
+          }
+        }
+
+      val subscriptionName = ProjectSubscriptionName.of(config.projectId, conf._2.propertiesBasedConfig.subscriptionId)
       Subscriber.newBuilder(subscriptionName, receiver).build()
     }.toSeq
   }

@@ -3,7 +3,8 @@ package com.metamx.tranquility.pubsub
 import java.io.FileInputStream
 
 import com.metamx.common.lifecycle.Lifecycle
-import com.metamx.common.scala.Logging
+import com.metamx.common.scala.lifecycle._
+import com.metamx.common.scala.{Abort, Logging}
 import com.metamx.common.scala.Predef._
 import com.metamx.tranquility.config.{DataSourceConfig, TranquilityConfig}
 import com.metamx.tranquility.pubsub.model.PropertiesBasedPubSubConfig
@@ -47,19 +48,23 @@ object PubSubMain extends App with Logging {
     val writerController = new WriterController(dataSourceConfigs)
     val pubSubConsumer = new PubSubConsumer(globalConfig, dataSourceConfigs, writerController)
 
-    pubSubConsumer.start()
+    lifecycle onStart {
+      log.info("Starting consumers")
+      pubSubConsumer.start()
+    } onStop {
+      log.info("Shutting down")
+      pubSubConsumer.stop()
+    }
 
-    Runtime.getRuntime.addShutdownHook(
-      new Thread(
-        new Runnable {
-          override def run(): Unit = {
-            log.info("Shutting down")
-            pubSubConsumer.stop()
-          }
-        }
-      )
-    )
+    try {
+      lifecycle.start()
+    }
+    catch {
+      case e: Exception =>
+        Abort(e)
+    }
 
+    lifecycle.join()
     pubSubConsumer.join()
   }
 }
