@@ -14,7 +14,6 @@ import com.metamx.tranquility.config.DataSourceConfig
 class PubSubConsumer(config: PropertiesBasedPubSubConfig,
                      dataSourceConfig: Map[String, DataSourceConfig[PropertiesBasedPubSubConfig]],
                      writerController: WriterController) extends Logging {
-//  val commitThread: Thread = new Thread(createCommitRunnable())
   val commitMillis: Int = config.commitMillis
   val commitLock = new ReentrantReadWriteLock()
   val shutdown = new AtomicBoolean()
@@ -22,8 +21,6 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
   val subscribers: Seq[Subscriber] = getSubscribers(config)
 
   def start(): Unit = {
-    log.info("Start pub sub consumers")
-//    commitThread.start()
     startConsumers()
   }
 
@@ -36,37 +33,8 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
       writerController.stop()
 
       subscribers.foreach(_.stopAsync())
-
-      // todo
     }
   }
-
-  def join(): Unit = {
-//    commitThread.join()
-  }
-
-//  def createCommitRunnable(): Runnable = {
-//    new Runnable {
-//      override def run(): Unit = {
-//        var lastFlushTime = System.currentTimeMillis()
-//
-//        while (!Thread.currentThread().isInterrupted) {
-//          Thread.sleep(math.max(commitMillis - (System.currentTimeMillis() - lastFlushTime), 0))
-//          commit()
-//          lastFlushTime = System.currentTimeMillis()
-//        }
-//      }
-//    }
-//  }
-
-//  def commit(): Unit = {
-//    commitLock.writeLock().lockInterruptibly()
-//    val flushStartTime = System.currentTimeMillis()
-//    val messageCounters = writerController.flushAll()
-//
-//    // todo?
-//
-//  }
 
   private def startConsumers(): Unit = {
     subscribers.foreach(_.startAsync())
@@ -78,7 +46,6 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
         new MessageReceiver {
           override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
             commitLock.readLock().lockInterruptibly()
-            log.info("Received message: " + message)
             writerController.getWriter(conf._2.propertiesBasedConfig.getTopicPattern).send(message.getData.toByteArray)
             consumer.ack()
             commitLock.readLock().unlock()

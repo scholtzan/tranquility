@@ -18,7 +18,5 @@ object PubSubBeamUtils {
         if (config.propertiesBasedConfig.useTopicAsDataSource) topic else config.dataSource
       )
     ).buildTranquilizer(config.tranquilizerBuilder())
-
-    // todo: curator, finagle necessary?
   }
 }

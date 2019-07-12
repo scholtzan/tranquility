@@ -15,8 +15,6 @@ class WriterController(dataSourceConfigs: Map[String, DataSourceConfig[Propertie
   val curators: concurrent.Map[String, CuratorFramework] = TrieMap.empty[String, CuratorFramework]
   val finagleRegistries: concurrent.Map[String, FinagleRegistry] = TrieMap.empty[String, FinagleRegistry]
 
-  // todo: sort config based on priority?
-
   def getWriter(topic: String): TranquilityEventWriter = {
     this.synchronized {
       if (!writers.contains(topic)) {
