@@ -46,13 +46,14 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
         new MessageReceiver {
           override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
             commitLock.readLock().lockInterruptibly()
-            writerController.getWriter(conf._2.propertiesBasedConfig.getTopicPattern).send(message.getData.toByteArray)
+            println("Message: " + message.getData.toString)
+            writerController.getWriter(conf._2.propertiesBasedConfig.getTopic).send(message.getData.toByteArray)
             consumer.ack()
             commitLock.readLock().unlock()
           }
         }
 
-      val subscriptionName = ProjectSubscriptionName.of(config.projectId, conf._2.propertiesBasedConfig.subscriptionId)
+      val subscriptionName = ProjectSubscriptionName.of(config.getProjectId, conf._2.propertiesBasedConfig.getSubscriptionId)
       Subscriber.newBuilder(subscriptionName, receiver).build()
     }.toSeq
   }
