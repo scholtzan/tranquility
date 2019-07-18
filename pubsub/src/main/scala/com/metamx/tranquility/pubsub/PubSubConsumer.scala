@@ -7,6 +7,8 @@ import com.metamx.tranquility.pubsub.model.PropertiesBasedPubSubConfig
 import com.metamx.tranquility.pubsub.writer.WriterController
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.google.cloud.pubsub.v1.{AckReplyConsumer, MessageReceiver, Subscriber}
 import com.google.pubsub.v1.{ProjectSubscriptionName, ProjectTopicName, PubsubMessage}
 import com.metamx.tranquility.config.DataSourceConfig
@@ -41,13 +43,16 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
   }
 
   private def getSubscribers(config: PropertiesBasedPubSubConfig): Seq[Subscriber] = {
+    val mapper = new ObjectMapper()
+    mapper.registerModule(DefaultScalaModule)
+
     dataSourceConfig.map { conf =>
       val receiver =
         new MessageReceiver {
           override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
             commitLock.readLock().lockInterruptibly()
-            println("Message: " + message.getData.toString)
-            writerController.getWriter(conf._2.propertiesBasedConfig.getTopic).send(message.getData.toByteArray)
+            val jsonPayload = mapper.writeValueAsString(message.getAttributesMap)
+            writerController.getWriter(conf._2.propertiesBasedConfig.getTopic).send(jsonPayload.getBytes)
             consumer.ack()
             commitLock.readLock().unlock()
           }
