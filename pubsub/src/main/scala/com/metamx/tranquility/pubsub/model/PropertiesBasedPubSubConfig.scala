@@ -18,4 +18,8 @@ abstract class PropertiesBasedPubSubConfig extends PropertiesBasedConfig () {
 
   @Config(Array("pubsub.subscriptionId"))
   def getSubscriptionId: String = ""
+
+  // decompresses the gzipped data field of pubsub messages if true
+  @Config(Array("pubsub.decompressData"))
+  def decompressData = true
 }
