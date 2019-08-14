@@ -117,9 +117,16 @@ class TranquilityServlet(
       case Some(JsonContentType) | Some(SmileContentType) =>
         Messages.fromObjectStream(decompressor(request.inputStream), forceDataSource, objectMapper) map {
           case (dataSource, d) =>
-            val row = getBundle(dataSource).mapParser.parse(d.asJava.asInstanceOf[java.util.Map[String, AnyRef]])
+            val mapper = new ObjectMapper()
+            val res = mapper.writeValueAsString(d.asJava.asInstanceOf[java.util.Map[String, AnyRef]])
+            val row = getBundle(dataSource).stringParser.parse(res)
             (dataSource, row)
         }
+      //        Messages.fromObjectStream(decompressor(request.inputStream), forceDataSource, objectMapper) map {
+//          case (dataSource, d) =>
+//            val row = getBundle(dataSource).mapParser.parse(d.asJava.asInstanceOf[java.util.Map[String, AnyRef]])
+//            (dataSource, row)
+//        }
 
       case Some(TextContentType) =>
         val dataSource = forceDataSource getOrElse {

@@ -139,7 +139,8 @@ val kafkaDependencies = Seq(
 ) ++ loggingDependencies
 
 val pubSubDependencies = Seq(
-  "com.google.cloud" % "google-cloud-pubsub" % "1.81.0"
+  "com.google.cloud" % "google-cloud-pubsub" % "1.81.0",
+  "com.jayway.jsonpath" % "json-path" % "2.4.0"
 ) ++ loggingDependencies
 
 val coreTestDependencies = Seq(

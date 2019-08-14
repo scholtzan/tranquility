@@ -59,7 +59,7 @@ object Messages
         }
         catch {
           case e: ParseException =>
-            throw new HttpException(HttpResponseStatus.BAD_REQUEST, s"Malformed string on line[$lineNumber]")
+            throw new HttpException(HttpResponseStatus.BAD_REQUEST, s"Malformed string on line[$lineNumber] $e")
         }
       }
     }
