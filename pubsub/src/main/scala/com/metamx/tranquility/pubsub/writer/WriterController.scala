@@ -11,7 +11,7 @@ import scala.collection.concurrent.TrieMap
 
 class WriterController(dataSourceConfigs: Map[String, DataSourceConfig[PropertiesBasedPubSubConfig]]) extends Logging {
   val writers: concurrent.Map[String, TranquilityEventWriter] = TrieMap.empty[String, TranquilityEventWriter]
-  val dataSourceConfigList: Seq[DataSourceConfig[PropertiesBasedPubSubConfig]] = dataSourceConfigs.values.toSeq.sortBy(_.propertiesBasedConfig.getTopic)
+  val dataSourceConfigList: Seq[DataSourceConfig[PropertiesBasedPubSubConfig]] = dataSourceConfigs.values.toSeq.sortBy(_.propertiesBasedConfig.topic)
   val curators: concurrent.Map[String, CuratorFramework] = TrieMap.empty[String, CuratorFramework]
   val finagleRegistries: concurrent.Map[String, FinagleRegistry] = TrieMap.empty[String, FinagleRegistry]
 
@@ -19,7 +19,7 @@ class WriterController(dataSourceConfigs: Map[String, DataSourceConfig[Propertie
     this.synchronized {
       if (!writers.contains(topic)) {
         dataSourceConfigList.foreach { dataSourceConfig =>
-          if (dataSourceConfig.propertiesBasedConfig.getTopic == topic) {
+          if (dataSourceConfig.propertiesBasedConfig.topic == topic) {
             log.info(s"Creating EventWriter for topic $topic using dataSource ${dataSourceConfig.dataSource}")
             writers.put(topic, createWriter(topic, dataSourceConfig))
             return writers(topic)

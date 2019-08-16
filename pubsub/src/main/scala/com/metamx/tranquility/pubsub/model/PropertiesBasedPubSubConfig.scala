@@ -1,28 +1,27 @@
 package com.metamx.tranquility.pubsub.model
 
+import java.util
+
+import scala.collection.JavaConverters._
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.metamx.common.scala.untyped.Dict
 import com.metamx.tranquility.config.PropertiesBasedConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.skife.config.Config
-
 import scala.collection.immutable.HashMap
 
 abstract class PropertiesBasedPubSubConfig extends PropertiesBasedConfig () {
   @Config(Array("pubsub.topic"))
-  def getTopic: String = ""
+  def topic: String = ""
 
   @Config(Array("useTopicAsDataSource"))
   def useTopicAsDataSource = false
 
-  @Config(Array("commit.periodMills"))
-  def commitMillis: Int = 1000
-
   @Config(Array("pubsub.projectId"))
-  def getProjectId: String = ""
+  def projectId: String = ""
 
   @Config(Array("pubsub.subscriptionId"))
-  def getSubscriptionId: String = ""
+  def subscriptionId: String = ""
 
   // decompresses the gzipped data field of pubsub messages if true
   @Config(Array("pubsub.decompressData"))

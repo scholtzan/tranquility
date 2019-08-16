@@ -20,8 +20,8 @@
 package com.metamx.tranquility.config
 
 import java.security.KeyStore
-import javax.net.ssl.TrustManagerFactory
 
+import javax.net.ssl.TrustManagerFactory
 import com.metamx.common.scala.net.curator.DiscoAnnounceConfig
 import com.metamx.common.scala.net.curator.DiscoConfig
 import com.metamx.common.scala.untyped.Dict
@@ -30,9 +30,13 @@ import com.metamx.tranquility.druid.DruidBeamConfig
 import com.metamx.tranquility.druid.DruidBeams
 import com.metamx.tranquility.tranquilizer.Tranquilizer
 import java.util.Properties
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.joda.time.Period
 import org.skife.config.Config
 import org.skife.config.ConfigurationObjectFactory
+
 import scala.collection.JavaConverters._
 
 abstract class PropertiesBasedConfig(
@@ -166,9 +170,15 @@ object PropertiesBasedConfig
     clazz: Class[ConfigType]
   ): ConfigType =
   {
+    val mapper = new ObjectMapper()
+    mapper.registerModule(DefaultScalaModule)
     val properties = new Properties
     for ((k, v) <- d if v != null) {
-      properties.setProperty(k, String.valueOf(v))
+      if (v.isInstanceOf[Map[String, String]]) {
+        properties.setProperty(k, mapper.writeValueAsString(v))
+      } else {
+        properties.setProperty(k, String.valueOf(v))
+      }
     }
     val configFactory = new ConfigurationObjectFactory(properties)
     val config = configFactory.build(clazz)

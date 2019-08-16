@@ -14,6 +14,7 @@ import com.metamx.tranquility.config.DataSourceConfig
 import com.metamx.tranquility.pubsub.model.PropertiesBasedPubSubConfig
 import com.metamx.tranquility.pubsub.writer.WriterController
 import net.minidev.json.JSONArray
+import scala.collection.JavaConverters._
 
 import scala.collection.JavaConverters._
 
@@ -68,8 +69,8 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
                 val elementArray: Array[Array[Any]] = mapper.readValue(elements.toJSONString, classOf[Array[Array[Any]]])
 
                 elementArray.foreach { el =>
-                  val newJson = json.put("$", mapPath, el).jsonString()
-                  writerController.getWriter(conf._2.propertiesBasedConfig.getTopic).send(newJson.getBytes)
+                  val newJson = json.put("$", mapPath.toString, el).jsonString()
+                  writerController.getWriter(conf._2.propertiesBasedConfig.topic).send(newJson.getBytes)
                 }
               } catch {
                 case e: PathNotFoundException =>
@@ -81,7 +82,7 @@ class PubSubConsumer(config: PropertiesBasedPubSubConfig,
           }
         }
 
-      val subscriptionName = ProjectSubscriptionName.of(config.getProjectId, conf._2.propertiesBasedConfig.getSubscriptionId)
+      val subscriptionName = ProjectSubscriptionName.of(config.projectId, conf._2.propertiesBasedConfig.subscriptionId)
       Subscriber.newBuilder(subscriptionName, receiver).build()
     }.toSeq
   }

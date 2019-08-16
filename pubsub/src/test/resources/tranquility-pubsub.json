@@ -1,0 +1,73 @@
+{
+  "dataSources" : {
+    "test" : {
+      "spec" : {
+        "dataSchema" : {
+          "dataSource" : "test",
+          "parser" : {
+            "type": "string",
+            "parseSpec" : {
+              "format": "json",
+              "flattenSpec": {
+                "useFieldDiscovery": true,
+                "fields": [
+                  {
+                    "type": "path",
+                    "name": "event_type",
+                    "expr": "$.data.type"
+                  }
+                ]
+              },
+              "timestampSpec" : {
+                "column": "timestamp",
+                "format": "auto"
+              },
+              "dimensionsSpec" : {
+                "dimensions": [
+                  "dim1",
+                  "dim2"
+                ]
+              }
+            }
+          },
+          "metricsSpec" : [{
+            "type" : "count",
+            "name" : "total_events"
+          }],
+          "granularitySpec" : {
+            "type" : "uniform",
+            "segmentGranularity" : "fifteen_minute",
+            "queryGranularity" : "minute",
+            "rollup" : true
+          }
+        },
+        "ioConfig" : {
+          "type" : "realtime"
+        },
+        "tuningConfig" : {
+          "type" : "realtime",
+          "maxRowsInMemory" : "100000",
+          "intermediatePersistPeriod" : "PT10M",
+          "windowPeriod" : "PT10M"
+        }
+      },
+      "properties" : {
+        "task.partitions" : "2",
+        "task.replicants" : "1",
+        "pubsub.topic" : "test-topic",
+        "pubsub.subscriptionId": "test-subscription",
+        "pubsub.splitFields": {
+          "$.test.path" : "foo"
+        }
+      }
+    }
+  },
+  "properties" : {
+    "zookeeper.connect" : "1.1.1.1",
+    "druid.discovery.curator.path" : "/druid/discovery",
+    "druid.selectors.indexing.serviceName" : "druid/overlord",
+    "commit.periodMillis" : "15000",
+    "consumer.numThreads" : "4",
+    "pubsub.projectId": "test-project"
+  }
+}
